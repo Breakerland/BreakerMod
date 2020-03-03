@@ -1,7 +1,9 @@
 package fr.alexrex.moderation.commands;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
@@ -11,7 +13,6 @@ import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -23,7 +24,7 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerPickupItemEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -37,6 +38,7 @@ public class Commands implements CommandExecutor,Listener {
 	private static HashMap<String, Boolean> playerMod = new HashMap<String, Boolean>();
 	private static HashMap<UUID, Location> playersFreeze = new HashMap<UUID, Location>();
 	public HashMap<UUID, ItemStack[]> playersInv = new HashMap<UUID, ItemStack[]>();
+	private List<UUID> vanishedPlayer = new ArrayList<UUID>();
 	
 	@SuppressWarnings("deprecation")
 	@Override
@@ -142,6 +144,7 @@ public class Commands implements CommandExecutor,Listener {
 		
 		if (hasMod(player)) {		
 			if(it.getType() == Material.LIME_DYE && (action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK)) {
+				vanishedPlayer.add(player.getUniqueId());
 				for(Player p : Bukkit.getOnlinePlayers()){
 					if(player != p && !p.hasPermission("mod.use")){
 						p.hidePlayer(player);
@@ -151,6 +154,7 @@ public class Commands implements CommandExecutor,Listener {
 				player.sendMessage("§cVous êtes désormais invisible");
 			}
 			if(it.getType() == Material.GRAY_DYE && (action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK)) {
+				vanishedPlayer.remove(player.getUniqueId());
 				for(Player p : Bukkit.getOnlinePlayers()){
 					if(player != p && !p.hasPermission("mod.use")){
 						p.showPlayer(player);
@@ -250,15 +254,27 @@ public class Commands implements CommandExecutor,Listener {
 		}
 	}
 	
-//	@EventHandler
-//	public void onJoin(PlayerJoinEvent event) {
-//		Player player = event.getPlayer();
-//		for (Player p : playerMod) {
-//			if(player.canSee(p)) {
-//				player.
-//			}
-//		}
-//	}
+	@SuppressWarnings("deprecation")
+	@EventHandler
+	public void onPlayerJoin(PlayerJoinEvent e) {
+		Player p = e.getPlayer();
+		if(!vanishedPlayer.isEmpty()) {
+			for(UUID uuid : vanishedPlayer) {
+				p.hidePlayer(Bukkit.getPlayer(uuid));
+			}
+		}
+	}
+	
+	@SuppressWarnings("deprecation")
+	@EventHandler
+	public void onPlayerQuit(PlayerQuitEvent e) {
+		Player p = e.getPlayer();
+		if(!vanishedPlayer.isEmpty()) {
+			for(UUID uuid : vanishedPlayer) {
+				p.showPlayer(Bukkit.getPlayer(uuid));
+			}
+		}
+	}
 	
 	public ItemStack getItem(Material material, String customName){
 		ItemStack it = new ItemStack(material,1);
