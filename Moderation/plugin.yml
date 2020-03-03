@@ -1,0 +1,18 @@
+name: Moderation
+version: 1.0
+author: AlexRex_
+main: fr.alexrex.moderation.Main
+api-version: 1.15
+commands:
+  alert:
+    description: Ceci est un broadcast custom
+    permission: alert.use
+  mod:
+    description: Ceci permet de passer en mode moderateur
+    permission: mod.use
+  menu:
+    description: Ceci permet de recup les infos sur un autre joueurs
+    permission: menu.use
+  freeze:
+    description: Permet de freeze un joueur
+    permission: freeze.use
